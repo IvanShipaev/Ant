@@ -1,18 +1,12 @@
 /**
  * \file main.c
- * \author Ivan Shiopaev
+ * \author Ivan Shipaev
  * \brief Number of allowed cages for an ant
  */
 
+#include <cstdint>
 #include <iostream>
 #include <unordered_map>
-
-/**
- * Initialize value
- */
-static constexpr int32_t startX = 1000;
-static constexpr int32_t startY = 1000;
-static constexpr uint32_t maxSumDigit = 25;
 
 /**
  *  Struct Point
@@ -32,7 +26,7 @@ struct Point
  */
 struct PointHasher
 {
-    std::size_t operator()(const Point& p) const
+    size_t operator()(const Point& p) const
     {
         uint64_t t = p.x;
         t = (t << 32) | p.y;
@@ -40,43 +34,36 @@ struct PointHasher
     }
 };
 
-static std::unordered_map<Point, bool, PointHasher> validStep; /// Map of allowed moves
-static std::unordered_map<Point, bool, PointHasher> usedStep;  /// Map of completed moves
-
 /**
- * @brief The sum of the digits in a number
- * @param value - Number
- * @return Sum
+ * @param startX - start position X
+ * @param startY - start position Y
+ * @param maxSumDigit - max sum digits X and Y
+ * @return Number of moves of the ant
  */
-static uint32_t getSumDig(int32_t value)
+size_t getStepsAnt(const int32_t startX, const int32_t startY, const uint32_t maxSumDigit)
 {
-    uint32_t sum = 0;
-    value = abs(value);
-    while(value) {
-        sum += value % 10;
-        value /= 10;
-    }
-    return sum;
-}
+    std::unordered_map<Point, bool, PointHasher> validStep; /// Hash map of allowed moves
+    std::unordered_map<Point, bool, PointHasher> usedStep;  /// Hash map of completed moves
 
-/**
- * @brief Checks and adds the next move if it is new and valid
- * @param x - X position
- * @param y - Y position
- */
-static void tryStep(int32_t x, int32_t y)
-{
-    Point point(x, y);
-    if( getSumDig(x) + getSumDig(y) <= maxSumDigit &&
-        validStep.find(point) == validStep.end() &&
-        usedStep.find(point) == usedStep.end())
-    {
-        validStep[point] = true;
-    }
-}
+    auto tryStep = [&maxSumDigit, &validStep, &usedStep] (int32_t x, int32_t y) {
+        Point point(x, y);
+        auto getSumDig = [] (int32_t value) {
+            uint32_t sum = 0;
+            value = std::abs(value);
+            while(value) {
+                sum += value % 10;
+                value /= 10;
+            }
+            return sum;
+        };
+        if( getSumDig(x) + getSumDig(y) <= maxSumDigit &&
+            validStep.find(point) == validStep.end() &&
+            usedStep.find(point) == usedStep.end())
+        {
+            validStep[point] = true;
+        }
+    };
 
-int main ()
-{
     tryStep(startX, startY);
     auto it = validStep.begin();
     while(it != validStep.end()) {
@@ -93,5 +80,14 @@ int main ()
         it = validStep.begin();
     }
 
-    std::cout << "Number: " << usedStep.size() << std::endl;
+    return usedStep.size();
 }
+
+int main ()
+{
+    std::cout << "Number: " << getStepsAnt(1000, 1000, 25) << std::endl;
+    std::cout << "For exit press Enter or Ctrl+C" << std::endl;
+    std::getchar();
+    return 0;
+}
+

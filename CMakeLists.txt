@@ -3,9 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 # Set the project name
 project (ant_step)
 
-include_directories( 
-    .
-)
+set (CMAKE_CXX_STANDARD 11)
 
 add_executable(${PROJECT_NAME} main.cpp)
 
